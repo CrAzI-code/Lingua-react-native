@@ -1,13 +1,31 @@
+import { useAuth } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
-import { Image, Pressable, Text, View } from "react-native";
+import { Redirect, useRouter } from "expo-router";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { images } from "@/constants/images";
 
 export default function OnboardingScreen() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (isSignedIn) {
+    return <Redirect href="/" />;
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <View className="flex-1 px-10 pt-8">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+      >
+      <View className="min-h-full px-10 pt-8">
         <View className="flex-row items-center justify-center gap-2">
           <Image
             source={images.mascotLogo}
@@ -53,13 +71,17 @@ export default function OnboardingScreen() {
           />
         </View>
 
-        <Pressable className="mb-7 mt-auto h-[72px] flex-row items-center justify-center rounded-[24px] bg-lingua-purple active:opacity-90">
+        <Pressable
+          className="mb-7 mt-auto h-[72px] flex-row items-center justify-center rounded-[24px] bg-lingua-purple active:opacity-90"
+          onPress={() => router.push("/(auth)/sign-up")}
+        >
           <Text className="font-poppins-semibold text-[25px] text-white">Get Started</Text>
           <View className="absolute right-9">
             <Ionicons name="chevron-forward" size={32} color="#FFFFFF" />
           </View>
         </Pressable>
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
