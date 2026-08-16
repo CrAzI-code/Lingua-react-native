@@ -7,15 +7,21 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useRouter } from "expo-router";
-
 type VerificationModalProps = {
   visible: boolean;
   email: string;
+  isLoading: boolean;
+  onRequestClose: () => void;
+  onVerify: (code: string) => Promise<void>;
 };
 
-export function VerificationModal({ visible, email }: VerificationModalProps) {
-  const router = useRouter();
+export function VerificationModal({
+  visible,
+  email,
+  isLoading,
+  onRequestClose,
+  onVerify,
+}: VerificationModalProps) {
   const inputRef = useRef<TextInput>(null);
   const [code, setCode] = useState("");
 
@@ -33,14 +39,19 @@ export function VerificationModal({ visible, email }: VerificationModalProps) {
     const nextCode = value.replace(/\D/g, "").slice(0, 6);
     setCode(nextCode);
 
-    if (nextCode.length === 6) {
+    if (nextCode.length === 6 && !isLoading) {
       Keyboard.dismiss();
-      router.replace("/");
+      void onVerify(nextCode);
     }
   };
 
   return (
-    <Modal animationType="fade" transparent visible={visible}>
+    <Modal
+      animationType="fade"
+      onRequestClose={onRequestClose}
+      transparent
+      visible={visible}
+    >
       <KeyboardAvoidingView
         behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
         className="flex-1 justify-end bg-black/35 px-5 pb-5"

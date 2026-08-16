@@ -1,7 +1,8 @@
+import { useSignIn, useSignUp, useSSO } from "@clerk/expo";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { images } from "@/constants/images";
@@ -30,8 +31,17 @@ const content = {
   },
 } as const;
 
+const socialStrategies = {
+  apple: "oauth_apple",
+  facebook: "oauth_facebook",
+  google: "oauth_google",
+} as const;
+
 export function AuthScreen({ mode }: AuthScreenProps) {
   const router = useRouter();
+  const { signIn, fetchStatus: signInStatus } = useSignIn();
+  const { signUp, fetchStatus: signUpStatus } = useSignUp();
+  const { startSSOFlow } = useSSO();
   const copy = content[mode];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,6 +49,111 @@ export function AuthScreen({ mode }: AuthScreenProps) {
   const [isVerificationVisible, setIsVerificationVisible] = useState(false);
 
   const alternateRoute = mode === "sign-up" ? "/(auth)/sign-in" : "/(auth)/sign-up";
+  const isLoading = signInStatus === "fetching" || signUpStatus === "fetching";
+
+  const navigateAfterAuth = ({
+    session,
+    decorateUrl,
+  }: Parameters<
+    NonNullable<NonNullable<Parameters<typeof signIn.finalize>[0]>["navigate"]>
+  >[0]) => {
+    if (session?.currentTask) {
+      Alert.alert("Account setup required", "Please complete the remaining account setup task.");
+      return;
+    }
+
+    const url = decorateUrl("/");
+    if (url.startsWith("http") && typeof window !== "undefined") {
+      window.location.href = url;
+      return;
+    }
+
+    router.replace(url as Href);
+  };
+
+  const showClerkError = (error: { longMessage?: string; message: string }) => {
+    Alert.alert("Authentication failed", error.longMessage ?? error.message);
+  };
+
+  const handleSubmit = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      Alert.alert("Email required", "Enter your email address to continue.");
+      return;
+    }
+
+    if (mode === "sign-up") {
+      if (!password) {
+        Alert.alert("Password required", "Enter a password to create your account.");
+        return;
+      }
+
+      const { error } = await signUp.password({ emailAddress: normalizedEmail, password });
+      if (error) {
+        showClerkError(error);
+        return;
+      }
+
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+      if (sendError) {
+        showClerkError(sendError);
+        return;
+      }
+    } else {
+      const { error } = await signIn.emailCode.sendCode({ emailAddress: normalizedEmail });
+      if (error) {
+        showClerkError(error);
+        return;
+      }
+    }
+
+    setEmail(normalizedEmail);
+    setIsVerificationVisible(true);
+  };
+
+  const handleVerify = async (code: string) => {
+    if (mode === "sign-up") {
+      const { error } = await signUp.verifications.verifyEmailCode({ code });
+      if (error) {
+        showClerkError(error);
+        return;
+      }
+
+      if (signUp.status === "complete") {
+        await signUp.finalize({ navigate: navigateAfterAuth });
+      }
+      return;
+    }
+
+    const { error } = await signIn.emailCode.verifyCode({ code });
+    if (error) {
+      showClerkError(error);
+      return;
+    }
+
+    if (signIn.status === "complete") {
+      await signIn.finalize({ navigate: navigateAfterAuth });
+    }
+  };
+
+  const handleSocialAuth = async (provider: SocialProvider) => {
+    try {
+      const { createdSessionId, setActive, signUp: socialSignUp } = await startSSOFlow({
+        strategy: socialStrategies[provider],
+      });
+
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        router.replace("/");
+      } else if (socialSignUp?.status === "missing_requirements") {
+        Alert.alert("More information required", "Complete the missing account details in Clerk.");
+      }
+    } catch {
+      const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
+      Alert.alert(`${providerName} sign-in failed`, "Please try again.");
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -114,7 +229,8 @@ export function AuthScreen({ mode }: AuthScreenProps) {
 
           <Pressable
             className="mt-2 h-[82px] items-center justify-center rounded-[21px] bg-lingua-purple active:opacity-90"
-            onPress={() => setIsVerificationVisible(true)}
+            disabled={isLoading}
+            onPress={() => void handleSubmit()}
           >
             <Text className="font-poppins-semibold text-[25px] text-white">{copy.action}</Text>
           </Pressable>
@@ -127,9 +243,9 @@ export function AuthScreen({ mode }: AuthScreenProps) {
         </View>
 
         <View className="mt-6 gap-3">
-          <SocialButton icon="google" label="Continue with Google" />
-          <SocialButton icon="facebook" label="Continue with Facebook" />
-          <SocialButton icon="apple" label="Continue with Apple" />
+          <SocialButton icon="google" label="Continue with Google" onPress={handleSocialAuth} />
+          <SocialButton icon="facebook" label="Continue with Facebook" onPress={handleSocialAuth} />
+          <SocialButton icon="apple" label="Continue with Apple" onPress={handleSocialAuth} />
         </View>
 
         <View className="mt-auto flex-row justify-center pb-7 pt-5">
@@ -141,17 +257,27 @@ export function AuthScreen({ mode }: AuthScreenProps) {
       </View>
       </ScrollView>
 
-      <VerificationModal email={email} visible={isVerificationVisible} />
+      {mode === "sign-up" && <View nativeID="clerk-captcha" />}
+      <VerificationModal
+        email={email}
+        isLoading={isLoading}
+        onRequestClose={() => setIsVerificationVisible(false)}
+        onVerify={handleVerify}
+        visible={isVerificationVisible}
+      />
     </SafeAreaView>
   );
 }
 
+type SocialProvider = "apple" | "facebook" | "google";
+
 type SocialButtonProps = {
-  icon: "apple" | "facebook" | "google";
+  icon: SocialProvider;
   label: string;
+  onPress: (provider: SocialProvider) => Promise<void>;
 };
 
-function SocialButton({ icon, label }: SocialButtonProps) {
+function SocialButton({ icon, label, onPress }: SocialButtonProps) {
   const socialIconColors = {
     apple: "#0D132B",
     facebook: "#1877F2",
@@ -159,7 +285,10 @@ function SocialButton({ icon, label }: SocialButtonProps) {
   } as const;
 
   return (
-    <Pressable className="h-[76px] flex-row items-center rounded-[22px] border border-[#E7E8EF] px-12 active:bg-surface">
+    <Pressable
+      className="h-[76px] flex-row items-center rounded-[22px] border border-[#E7E8EF] px-12 active:bg-surface"
+      onPress={() => void onPress(icon)}
+    >
       <FontAwesome color={socialIconColors[icon]} name={icon} size={33} />
       <Text className="ml-11 font-poppins-medium text-[19px] text-text-primary">{label}</Text>
     </Pressable>
