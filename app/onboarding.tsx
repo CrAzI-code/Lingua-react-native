@@ -15,7 +15,7 @@ export default function OnboardingScreen() {
   }
 
   if (isSignedIn) {
-    return <Redirect href="/" />;
+    return <Redirect href="/(tabs)/index" />;
   }
 
   return (
