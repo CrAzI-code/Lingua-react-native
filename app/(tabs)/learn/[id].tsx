@@ -6,7 +6,7 @@ export default function LessonDetailScreen() {
   const router = useRouter();
 
   return (
-    <View className="flex-1 bg-background px-6 pt-16">
+    <View className="flex-1 bg-background px-6 pt-10">
       <Pressable
         accessibilityLabel="Back to Learn"
         accessibilityRole="button"

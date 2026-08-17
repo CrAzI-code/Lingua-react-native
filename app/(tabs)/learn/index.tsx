@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 export default function LearnScreen() {
   return (
-    <View className="flex-1 bg-background px-6 pt-16">
+    <View className="flex-1 bg-background px-6 pt-10">
       <Text className="h2 text-text-primary">Learn</Text>
       <Text className="mt-2 body-medium text-text-secondary">Choose a lesson to begin.</Text>
       <Link href={{ pathname: "/(tabs)/learn/[id]", params: { id: "1" } }} asChild>

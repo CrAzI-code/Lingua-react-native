@@ -57,8 +57,15 @@ export function CustomTabBar({ descriptors, navigation, state }: BottomTabBarPro
 
   return (
     <View
-      className="border-t border-border bg-white px-2 pt-2"
-      style={{ paddingBottom: Math.max(insets.bottom, 8) }}
+      className="rounded-t-[34px] bg-white px-2 pt-2"
+      style={{
+        paddingBottom: Math.max(insets.bottom, 8),
+        shadowColor: "#0D132B",
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
+        elevation: 8,
+      }}
     >
       <Animated.View
         pointerEvents="none"
@@ -103,7 +110,7 @@ export function CustomTabBar({ descriptors, navigation, state }: BottomTabBarPro
               onPress={handlePress}
             >
               <Ionicons
-                color={isActive ? "#FFFFFF" : "#6B7280"}
+                color={isActive ? "#FFFFFF" : "#7D86A2"}
                 name={getTabIcon(route.name, isActive)}
                 size={25}
               />
