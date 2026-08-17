@@ -2,11 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
+import { useAuth } from "@clerk/expo";
 
 import { images } from "@/constants/images";
 import { languages } from "@/data/languages";
 import type { Language, LanguageId } from "@/types/learning";
+import { useLanguageStore } from "@/store/language-store";
 
 function emitLanguageConfirmation(languageId: LanguageId) {
   console.info("Selected language:", languageId);
@@ -14,6 +16,8 @@ function emitLanguageConfirmation(languageId: LanguageId) {
 
 export default function LanguageSelectionScreen() {
   const router = useRouter();
+  const { isLoaded, isSignedIn, userId } = useAuth();
+  const selectLanguage = useLanguageStore((state) => state.selectLanguage);
   const [query, setQuery] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
   const normalizedQuery = query.trim().toLowerCase();
@@ -23,14 +27,23 @@ export default function LanguageSelectionScreen() {
     ),
   );
 
-  const handleConfirm = () => {
-    if (!selectedLanguage) {
+  const handleConfirm = async () => {
+    if (!selectedLanguage || !userId) {
       return;
     }
 
+    await selectLanguage(userId, selectedLanguage.id);
     emitLanguageConfirmation(selectedLanguage.id);
-    router.back();
+    router.replace("/(tabs)/index");
   };
+
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (!isSignedIn) {
+    return <Redirect href="/onboarding" />;
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -120,7 +133,7 @@ export default function LanguageSelectionScreen() {
               selectedLanguage ? "bg-lingua-purple active:opacity-90" : "bg-border"
             }`}
             disabled={!selectedLanguage}
-            onPress={handleConfirm}
+            onPress={() => void handleConfirm()}
           >
             <Text className="font-poppins-semibold text-[20px] text-white">
               Confirm language

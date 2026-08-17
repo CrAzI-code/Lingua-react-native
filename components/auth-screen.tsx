@@ -145,7 +145,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
 
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
-        router.replace("/");
+        router.replace("/(tabs)/index");
       } else if (socialSignUp?.status === "missing_requirements") {
         Alert.alert("More information required", "Complete the missing account details in Clerk.");
       }
