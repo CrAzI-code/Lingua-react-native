@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ACTIVE_CIRCLE_SIZE = 58;
 
@@ -32,6 +33,7 @@ function getTabIcon(routeName: string, isActive: boolean): keyof typeof Ionicons
 }
 
 export function CustomTabBar({ descriptors, navigation, state }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
   const [tabRowLayout, setTabRowLayout] = useState({ width: 0, x: 0 });
   const indicatorLeft = useSharedValue(0);
 
@@ -54,7 +56,10 @@ export function CustomTabBar({ descriptors, navigation, state }: BottomTabBarPro
   }));
 
   return (
-    <View className="border-t border-border bg-white px-2 pb-2 pt-2">
+    <View
+      className="border-t border-border bg-white px-2 pt-2"
+      style={{ paddingBottom: Math.max(insets.bottom, 8) }}
+    >
       <Animated.View
         pointerEvents="none"
         className="absolute top-2 h-[58px] w-[58px] rounded-full bg-lingua-purple"
