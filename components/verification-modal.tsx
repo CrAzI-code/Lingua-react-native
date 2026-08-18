@@ -1,11 +1,13 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Text,
-  TextInput,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Modal,
+    Pressable,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 type VerificationModalProps = {
   visible: boolean;
@@ -57,6 +59,15 @@ export function VerificationModal({
         className="flex-1 justify-end bg-black/35 px-5 pb-5"
       >
         <View className="rounded-[30px] bg-white px-6 pb-8 pt-7">
+          <View className="absolute right-4 top-4">
+            <Pressable
+              onPress={onRequestClose}
+              className="active:opacity-70"
+              accessibilityLabel="Close verification"
+            >
+              <Ionicons name="close" size={24} color="#0D132B" />
+            </Pressable>
+          </View>
           <Text className="text-center font-poppins-semibold text-[25px] text-text-primary">
             Check your email
           </Text>

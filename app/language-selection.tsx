@@ -39,7 +39,7 @@ export default function LanguageSelectionScreen() {
       language_code: selectedLanguage.code,
     });
     emitLanguageConfirmation(selectedLanguage.id);
-    router.replace("/(tabs)/index");
+    router.replace("/");
   };
 
   if (!isLoaded) {

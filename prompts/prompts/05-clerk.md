@@ -24,7 +24,7 @@ Do not change the screen design. If there is any need, ask me before implementat
 
 There are three approaches for adding authentication to your Expo app.
 
-**For AI agents:** In an existing Expo app, run `npx clerk@latest init --framework expo` to install `@clerk/expo` and pull your keys into your project's env file (it won't scaffold screens or bootstrap a new app, so follow the steps below for the provider and UI). Install [Clerk's skills](https://clerk.com/docs/guides/ai/skills.md) with `npx skills add clerk/skills` — includes `clerk-expo`.
+**For AI agents:** In an existing Expo app, request explicit user approval before proceeding. With approval, run `npx @clerk/cli@latest init --framework expo` to install `@clerk/expo` and pull your keys into your project's env file (use the repository's approved Clerk version, currently ^4.3.0, rather than @latest). Install [Clerk's skills](https://clerk.com/docs/guides/ai/skills.md) with `npx skills add clerk/skills` after getting approval — includes `clerk-expo`.
 
 | Approach                  | Auth UI                      | Requires dev build              | Best for             |
 | ------------------------- | ---------------------------- | ------------------------------- | -------------------- |

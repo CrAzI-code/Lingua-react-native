@@ -29,15 +29,6 @@ export const languages: Language[] = [
     description: "Start speaking Japanese with simple daily phrases.",
   },
   {
-    id: "korean",
-    name: "Korean",
-    nativeName: "한국어",
-    code: "ko",
-    flag: "https://flagcdn.com/w320/kr.png",
-    learnerCount: "9.3M learners",
-    description: "Learn useful Korean for everyday conversations.",
-  },
-  {
     id: "german",
     name: "German",
     nativeName: "Deutsch",
@@ -45,14 +36,5 @@ export const languages: Language[] = [
     flag: "https://flagcdn.com/w320/de.png",
     learnerCount: "8.1M learners",
     description: "Learn practical German for simple conversations.",
-  },
-  {
-    id: "chinese",
-    name: "Chinese",
-    nativeName: "中文",
-    code: "zh",
-    flag: "https://flagcdn.com/w320/cn.png",
-    learnerCount: "7.4M learners",
-    description: "Start learning useful Chinese phrases for daily life.",
   },
 ];

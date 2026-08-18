@@ -16,15 +16,15 @@ Before ANY POST / PATCH / PUT / DELETE, you MUST do ALL of the following in your
 
 1. **Check CLERK_SECRET_KEY** — verify it is set:
    ```bash
-   echo $CLERK_SECRET_KEY | head -c 10
+   [[ -n "${CLERK_SECRET_KEY:-}" ]] && echo "CLERK_SECRET_KEY is set" || echo "CLERK_SECRET_KEY is missing"
    ```
-   If empty, stop and ask the user. Do not proceed without a valid key.
+   If missing, stop and ask the user. Do not proceed without a valid key.
 
-2. **Check CLERK_BAPI_SCOPES** — run:
+2. **Check CLERK_BAPI_SCOPES (advisory only)** — this is informational only; direct curl requests are not enforced by the script. Write and delete operations use the privileges of CLERK_SECRET_KEY, not CLERK_BAPI_SCOPES. You may run this to inform the user of their current scopes:
    ```bash
-   echo $CLERK_BAPI_SCOPES
+   echo "${CLERK_BAPI_SCOPES:-none}"
    ```
-   Inspect the output. If scopes are missing or do not include the required write permission, tell the user: *"This is a write operation and your current scopes may not allow it. Rerun with --admin to bypass?"* Do NOT attempt the request and fail — ask first.
+   CLERK_BAPI_SCOPES or --admin do not restrict API access through curl.
 
 3. **For DELETE requests:** warn explicitly that the action is **IRREVERSIBLE** and list exactly what data will be permanently destroyed (user record, all sessions, all memberships, all associated data). Require explicit confirmation before proceeding. This warning is MANDATORY — never skip it.
 
@@ -119,7 +119,7 @@ await clerkClient.users.updateUser(userId, {
 ### List users (last 7 days)
 
 ```bash
-curl -s "https://api.clerk.com/v1/users?limit=100&offset=0&order_by=-created_at&created_at=gt:$(date -d '7 days ago' +%s 2>/dev/null || date -v-7d +%s)000" \
+curl -s "https://api.clerk.com/v1/users?limit=100&offset=0&order_by=-created_at&created_at_after=$(date -d '7 days ago' +%s 2>/dev/null || date -v-7d +%s)000" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY" \
   | python3 -c "
 import sys, json
@@ -208,13 +208,13 @@ Returns: OrganizationInvitation object
 
 Template for GET requests:
 ```bash
-curl -s "https://api.clerk.com/v1${PATH}${QUERY_STRING}" \
+curl -s "https://api.clerk.com/v1${API_PATH}${QUERY_STRING}" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY"
 ```
 
 Template for POST/PATCH requests:
 ```bash
-curl -s -X ${METHOD} "https://api.clerk.com/v1${PATH}" \
+curl -s -X ${METHOD} "https://api.clerk.com/v1${API_PATH}" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY" \
   -H "Content-Type: application/json" \
   -d '${BODY_JSON}'
@@ -222,7 +222,7 @@ curl -s -X ${METHOD} "https://api.clerk.com/v1${PATH}" \
 
 Template for DELETE requests:
 ```bash
-curl -s -X DELETE "https://api.clerk.com/v1${PATH}" \
+curl -s -X DELETE "https://api.clerk.com/v1${API_PATH}" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY"
 ```
 

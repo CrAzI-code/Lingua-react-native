@@ -1,13 +1,16 @@
 import { ClerkProvider, useAuth, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
-import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { PostHogErrorBoundary, PostHogProvider } from "posthog-react-native";
 import { useEffect, useRef } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { posthog } from "../config/posthog";
 import "../global.css";
+
+SplashScreen.preventAutoHideAsync();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -58,27 +61,40 @@ function PostHogIdentity() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     "Poppins-Bold": require("@/assets/fonts/Poppins-Bold.ttf"),
     "Poppins-Medium": require("@/assets/fonts/Poppins-Medium.ttf"),
     "Poppins-Regular": require("@/assets/fonts/Poppins-Regular.ttf"),
     "Poppins-SemiBold": require("@/assets/fonts/Poppins-SemiBold.ttf"),
   });
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      void SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
   return (
     <ClerkProvider publishableKey={publishableKey!} tokenCache={tokenCache}>
       <SafeAreaProvider>
-        <PostHogProvider client={posthog}>
-          <PostHogIdentity />
-          <PostHogErrorBoundary>
+        {posthog ? (
+          <PostHogProvider client={posthog}>
+            <PostHogIdentity />
+            <PostHogErrorBoundary>
+              <StatusBar style="dark" />
+              <Stack screenOptions={{ headerShown: false }} />
+            </PostHogErrorBoundary>
+          </PostHogProvider>
+        ) : (
+          <>
             <StatusBar style="dark" />
             <Stack screenOptions={{ headerShown: false }} />
-          </PostHogErrorBoundary>
-        </PostHogProvider>
+          </>
+        )}
       </SafeAreaProvider>
     </ClerkProvider>
   );

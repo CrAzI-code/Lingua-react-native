@@ -1,12 +1,12 @@
-import { useAuth, useUser } from "@clerk/expo";
+import { useAuth, useClerk, useUser } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, Redirect } from "expo-router";
 import { useEffect } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
-import { LANGUAGE_SELECTION_ROUTE } from "@/constants/routes";
-import { images } from "@/constants/images";
 import { posthog } from "@/config/posthog";
+import { images } from "@/constants/images";
+import { LANGUAGE_SELECTION_ROUTE } from "@/constants/routes";
 import { languages } from "@/data/languages";
 import { lessons } from "@/data/lessons";
 import { useLanguageStore } from "@/store/language-store";
@@ -24,6 +24,7 @@ const greetingByLanguage = {
 
 export default function Index() {
   const { isLoaded, isSignedIn, userId } = useAuth();
+  const { signOut } = useClerk();
   const { user } = useUser();
   const activeUserId = useLanguageStore((state) => state.activeUserId);
   const hasHydrated = useLanguageStore((state) => state.hasHydrated);
@@ -59,7 +60,7 @@ export default function Index() {
   }
 
   const currentLesson = lessons.find((lesson) => lesson.languageId === selectedLanguage.id);
-  const dailyProgressXp = Math.min(currentLesson?.xpReward ?? 0, DAILY_GOAL_XP);
+  const dailyProgressXp = 0; // Until completion tracking is available
   const progressPercent = (dailyProgressXp / DAILY_GOAL_XP) * 100;
   const learnerName = user?.firstName || user?.username || "there";
   const greeting = greetingByLanguage[selectedLanguage.code];
@@ -96,6 +97,14 @@ export default function Index() {
           </View>
           <Pressable accessibilityLabel="Notifications" className="p-1 active:opacity-70">
             <Ionicons color="#0D132B" name="notifications-outline" size={27} />
+          </Pressable>
+          <Pressable
+            onPress={() => void signOut()}
+            className="ml-2 p-1 active:opacity-70"
+            accessibilityLabel="Sign out"
+            accessibilityRole="button"
+          >
+            <Ionicons color="#0D132B" name="log-out-outline" size={27} />
           </Pressable>
         </View>
 

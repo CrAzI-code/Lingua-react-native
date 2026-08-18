@@ -1,13 +1,15 @@
-import { useSignIn, useSignUp, useSSO } from "@clerk/expo";
+import { useSignIn, useSignUp } from "@clerk/expo";
+import { useSSO } from "@clerk/expo/experimental";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { makeRedirectUri } from "expo-auth-session";
 import { type Href, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { images } from "@/constants/images";
 import { VerificationModal } from "@/components/verification-modal";
 import { posthog } from "@/config/posthog";
+import { images } from "@/constants/images";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -125,7 +127,11 @@ export function AuthScreen({ mode }: AuthScreenProps) {
       }
 
       if (signUp.status === "complete") {
-        await signUp.finalize({ navigate: navigateAfterAuth });
+        const { error: finalizeError } = await signUp.finalize({ navigate: navigateAfterAuth });
+        if (finalizeError) {
+          showClerkError(finalizeError);
+          return;
+        }
       }
       return;
     }
@@ -137,7 +143,11 @@ export function AuthScreen({ mode }: AuthScreenProps) {
     }
 
     if (signIn.status === "complete") {
-      await signIn.finalize({ navigate: navigateAfterAuth });
+      const { error: finalizeError } = await signIn.finalize({ navigate: navigateAfterAuth });
+      if (finalizeError) {
+        showClerkError(finalizeError);
+        return;
+      }
     }
   };
 
@@ -147,13 +157,13 @@ export function AuthScreen({ mode }: AuthScreenProps) {
     });
 
     try {
-      const { createdSessionId, setActive, signUp: socialSignUp } = await startSSOFlow({
+      const { createdSessionId, signUp: socialSignUp } = await startSSOFlow({
+        redirectUrl: makeRedirectUri({ path: "sso-callback" }),
         strategy: socialStrategies[provider],
       });
 
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
-        router.replace("/(tabs)/index");
+      if (createdSessionId) {
+        router.replace("/");
       } else if (socialSignUp?.status === "missing_requirements") {
         Alert.alert("More information required", "Complete the missing account details in Clerk.");
       }
