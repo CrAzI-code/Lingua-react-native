@@ -63,6 +63,7 @@ export type Lesson = {
   description: string;
   goal: string;
   xpReward: number;
+  imageUrl?: string;
   vocabulary: VocabularyItem[];
   phrases: Phrase[];
   activities: Activity[];
