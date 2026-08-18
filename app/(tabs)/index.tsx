@@ -145,15 +145,11 @@ export default function Index() {
             resizeMode="contain"
           />
           {currentLesson ? (
-            <Link
-              href={{ pathname: "/(tabs)/learn/[id]", params: { id: currentLesson.id } }}
-              asChild
-            >
+            <Link href="/(tabs)/learn" asChild>
               <Pressable
                 className="absolute bottom-4 left-6 rounded-2xl bg-white px-6 py-3 active:opacity-85"
                 onPress={() =>
-                  posthog?.capture("lesson_started", {
-                    lesson_id: currentLesson.id,
+                  posthog?.capture("lessons_opened", {
                     language_id: selectedLanguage.id,
                     entry_point: "home_continue",
                   })
