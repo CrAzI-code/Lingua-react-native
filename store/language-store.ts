@@ -50,7 +50,9 @@ export const useLanguageStore = create<LanguageStore>((set, get) => ({
   selectLanguage: async (userId, selectedLanguageId) => {
     await AsyncStorage.setItem(getSelectedLanguageKey(userId), selectedLanguageId);
 
-    set({ activeUserId: userId, hasHydrated: true, selectedLanguageId });
+    if (get().activeUserId === userId) {
+      set({ activeUserId: userId, hasHydrated: true, selectedLanguageId });
+    }
   },
   clearSelectedLanguage: async (userId) => {
     await AsyncStorage.removeItem(getSelectedLanguageKey(userId));

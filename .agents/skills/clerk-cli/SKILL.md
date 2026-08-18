@@ -141,7 +141,7 @@ Use this before `clerk api <path>`. If you don't see the endpoint you expected, 
 # GET requests
 clerk api /users                                  # list users
 clerk api /users/user_abc123                      # fetch one
-clerk api /users?limit=5&order_by=-created_at     # query params work inline
+clerk api "/users?limit=5&order_by=-created_at"   # query params work inline
 
 # Mutating requests
 clerk api /users -d '{"email_address":["a@b.co"]}'          # POST (auto-detected from body)
@@ -166,7 +166,8 @@ clerk api /users --include
 clerk api /v1/platform/applications --platform
 
 # Frontend API (the instance's public client-facing API — what clerk-js calls.
-# Unauthenticated; --fapi and --platform cannot be combined, --secret-key is ignored)
+# GET /v1/environment is unauthenticated; other Frontend API operations may require DevBrowser or session auth.
+# --fapi and --platform cannot be combined, --secret-key is ignored)
 clerk api --fapi /environment
 ```
 
@@ -238,7 +239,7 @@ node -e 'const d=require("/tmp/users.json"); console.log(d.data.length, d.hasMor
 | `clerk enable orgs` / `clerk disable orgs` | Toggle Organizations on the instance. For org features, components, and API usage, see the `clerk-orgs` skill.                                                                                                                                                                                         | `--force-selection`, `--auto-create`, `--max-members <n>`, `--domains`, `--dry-run`, `--yes`, `--app`, `--instance`                                                              |
 | `clerk enable billing` / `clerk disable billing` | Toggle billing for users and/or orgs (defaults to both). For plans, pricing components, and entitlements, see the `clerk-billing` skill.                                                                                                                                                         | `--for <orgs\|users>`, `--dry-run`, `--yes`, `--no-skills` (enable only), `--app`, `--instance`                                                                                  |
 | `clerk doctor`                | Health check (CLI version, login, link, env, config, completion; plus host-execution probe in agent mode).                                                                                                                                                                                                          | `--json`, `--spotlight`, `--verbose`, `--fix`                                                                                                                                    |
-| `clerk api [path]`            | Authenticated HTTP to Backend/Platform API.                                                                                                                                                                                                                                                                         | `-X`, `-d`, `--file`, `--dry-run`, `--yes`, `--include`, `--app`, `--secret-key`, `--instance`, `--platform`                                                                     |
+| `clerk api [path]`            | Authenticated HTTP to Backend/Platform API.                                                                                                                                                                                                                                                                         | `-X`, `-d`, `--file`, `--dry-run`, `--yes`, `--include`, `--app`, `--secret-key`, `--instance`, `--fapi`, `--platform`                                                            |
 | `clerk api ls [filter]`       | Discover endpoints from the bundled OpenAPI catalog.                                                                                                                                                                                                                                                                | (see `--help`)                                                                                                                                                                   |
 | `clerk completion [shell]`    | Print a shell completion script (`bash`, `zsh`, `fish`, `powershell`).                                                                                                                                                                                                                                              | -                                                                                                                                                                                |
 | `clerk update`                | Update the CLI to the latest version.                                                                                                                                                                                                                                                                               | `--channel`, `-y`, `--all`                                                                                                                                                       |

@@ -6,6 +6,7 @@ import { Redirect, useRouter } from "expo-router";
 import { useAuth } from "@clerk/expo";
 
 import { images } from "@/constants/images";
+import { posthog } from "@/config/posthog";
 import { languages } from "@/data/languages";
 import type { Language, LanguageId } from "@/types/learning";
 import { useLanguageStore } from "@/store/language-store";
@@ -33,8 +34,12 @@ export default function LanguageSelectionScreen() {
     }
 
     await selectLanguage(userId, selectedLanguage.id);
+    posthog?.capture("language_selected", {
+      language_id: selectedLanguage.id,
+      language_code: selectedLanguage.code,
+    });
     emitLanguageConfirmation(selectedLanguage.id);
-    router.replace("/(tabs)/index");
+    router.replace("/");
   };
 
   if (!isLoaded) {
