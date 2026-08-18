@@ -6,6 +6,7 @@ import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
 import { LANGUAGE_SELECTION_ROUTE } from "@/constants/routes";
 import { images } from "@/constants/images";
+import { posthog } from "@/config/posthog";
 import { languages } from "@/data/languages";
 import { lessons } from "@/data/lessons";
 import { useLanguageStore } from "@/store/language-store";
@@ -139,7 +140,16 @@ export default function Index() {
               href={{ pathname: "/(tabs)/learn/[id]", params: { id: currentLesson.id } }}
               asChild
             >
-              <Pressable className="absolute bottom-4 left-6 rounded-2xl bg-white px-6 py-3 active:opacity-85">
+              <Pressable
+                className="absolute bottom-4 left-6 rounded-2xl bg-white px-6 py-3 active:opacity-85"
+                onPress={() =>
+                  posthog?.capture("lesson_started", {
+                    lesson_id: currentLesson.id,
+                    language_id: selectedLanguage.id,
+                    entry_point: "home_continue",
+                  })
+                }
+              >
                 <Text className="font-poppins-semibold text-lg text-lingua-purple">Continue</Text>
               </Pressable>
             </Link>

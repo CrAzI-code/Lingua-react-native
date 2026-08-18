@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { images } from "@/constants/images";
 import { VerificationModal } from "@/components/verification-modal";
+import { posthog } from "@/config/posthog";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -108,6 +109,9 @@ export function AuthScreen({ mode }: AuthScreenProps) {
       }
     }
 
+    posthog?.capture("authentication_code_requested", {
+      authentication_mode: mode,
+    });
     setEmail(normalizedEmail);
     setIsVerificationVisible(true);
   };
@@ -138,6 +142,10 @@ export function AuthScreen({ mode }: AuthScreenProps) {
   };
 
   const handleSocialAuth = async (provider: SocialProvider) => {
+    posthog?.capture("social_auth_started", {
+      provider,
+    });
+
     try {
       const { createdSessionId, setActive, signUp: socialSignUp } = await startSSOFlow({
         strategy: socialStrategies[provider],

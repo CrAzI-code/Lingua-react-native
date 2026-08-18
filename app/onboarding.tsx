@@ -4,6 +4,7 @@ import { Redirect, useRouter } from "expo-router";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { posthog } from "@/config/posthog";
 import { images } from "@/constants/images";
 
 export default function OnboardingScreen() {
@@ -73,7 +74,10 @@ export default function OnboardingScreen() {
 
         <Pressable
           className="mb-7 mt-auto h-[72px] flex-row items-center justify-center rounded-[24px] bg-lingua-purple active:opacity-90"
-          onPress={() => router.push("/(auth)/sign-up")}
+          onPress={() => {
+            posthog?.capture("onboarding_started");
+            router.push("/(auth)/sign-up");
+          }}
         >
           <Text className="font-poppins-semibold text-[25px] text-white">Get Started</Text>
           <View className="absolute right-9">
