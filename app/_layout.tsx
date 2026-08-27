@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { PostHogErrorBoundary, PostHogProvider } from "posthog-react-native";
 import { useEffect, useRef } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StreamVideoProvider } from "@/components/stream-video-provider";
 import { posthog } from "../config/posthog";
 import "../global.css";
 
@@ -80,22 +81,24 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider publishableKey={publishableKey!} tokenCache={tokenCache}>
-      <SafeAreaProvider>
-        {posthog ? (
-          <PostHogProvider client={posthog}>
-            <PostHogIdentity />
-            <PostHogErrorBoundary>
+      <StreamVideoProvider>
+        <SafeAreaProvider>
+          {posthog ? (
+            <PostHogProvider client={posthog}>
+              <PostHogIdentity />
+              <PostHogErrorBoundary>
+                <StatusBar style="dark" />
+                <Stack screenOptions={{ headerShown: false }} />
+              </PostHogErrorBoundary>
+            </PostHogProvider>
+          ) : (
+            <>
               <StatusBar style="dark" />
               <Stack screenOptions={{ headerShown: false }} />
-            </PostHogErrorBoundary>
-          </PostHogProvider>
-        ) : (
-          <>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false }} />
-          </>
-        )}
-      </SafeAreaProvider>
+            </>
+          )}
+        </SafeAreaProvider>
+      </StreamVideoProvider>
     </ClerkProvider>
   );
 }

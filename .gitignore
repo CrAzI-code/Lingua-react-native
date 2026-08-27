@@ -31,7 +31,20 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+vision-agent/.env
+
+# Vision Agents Python environment
+vision-agent/.venv/
+vision-agent/__pycache__/
+vision-agent/**/*.pyc
+vision-agent/*.egg-info/
+
+# Local tooling and build caches
+.gradle-user/
+.agents/
+.claude/
 
 # typescript
 *.tsbuildinfo
